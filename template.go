@@ -27,6 +27,12 @@ func NewTemplateMessage(templateID string) *TemplateMessage {
 	}
 }
 
+// SetTemplateId 设置模板ID
+func (t *TemplateMessage) SetTemplateId(tid string) *TemplateMessage {
+	t.TemplateId = tid
+	return t
+}
+
 // SetUser 设置用户OPENID
 func (t *TemplateMessage) SetUser(openID string) *TemplateMessage {
 	t.ToUser = openID
@@ -77,4 +83,37 @@ func (t *TemplateMessage) Json() ([]byte, error) {
 		return nil, errors.New("模板消息个数不合法")
 	}
 	return json.Marshal(t)
+}
+
+type TemplateMessagePool struct {
+	pool sync.Pool
+}
+
+func NewTemplateMessagePool() *TemplateMessagePool {
+	pool := sync.Pool{
+		New: func() interface{} {
+			return NewTemplateMessage("")
+		},
+	}
+
+	return &TemplateMessagePool{
+		pool: pool,
+	}
+}
+
+// Get 获取
+func (p *TemplateMessagePool) Get() *TemplateMessage {
+	return p.pool.Get().(*TemplateMessage)
+}
+
+// Put 放入池
+func (p *TemplateMessagePool) Put(t *TemplateMessage) {
+	t.SetTemplateId("").SetUser("").SetUrl("")
+	if t.Miniprogram != nil {
+		t.SetMiniprogram("", "")
+	}
+	t.Data = make(map[string]TemplateMessageDataItem)
+	t.Miniprogram = make(map[string]string)
+
+	p.pool.Put(t)
 }
