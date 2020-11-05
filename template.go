@@ -6,6 +6,13 @@ import (
 	"sync"
 )
 
+var (
+	TemplateIdInValid = errors.New("Unknow TemplateId filed value")
+	ToUserInValid = errors.New("Unknow ToUser field value")
+	DataInValid = errors.New("Template Message Data Item Num Must between 1 AND 7")
+	DataKeywordMissing = errors.New("Missing Keywork1 field")
+)
+
 type TemplateMessageDataItem struct {
 	Value string `json:"value"`
 	Color string `json:"color"`
@@ -77,11 +84,33 @@ func (t *TemplateMessage) AddDataItem(key string, value TemplateMessageDataItem)
 	return t
 }
 
+// Vaild 判断是否有效
+func (t *TemplateMessage) CheckValid() error {
+	if t.TemplateId == "" {
+		return TemplateIdInValid
+	}
+
+	if t.ToUser == "" {
+		return ToUserInValid
+	}
+
+	if len(t.Data) < 1 || len(t.Data) > 7 {
+		return DataInValid
+	}
+
+	if _, ok := t.Data["keyword1"]; !ok {
+		return DataKeywordMissing
+	}
+
+	return nil
+}
+
 // Json 返回模板消息JSON数据格式
 func (t *TemplateMessage) Json() ([]byte, error) {
-	if len(t.Data) < 0 || len(t.Data) > 5 {
-		return nil, errors.New("模板消息个数不合法")
+	if err := t.CheckValid(); err != nil {
+		return nil, err
 	}
+
 	return json.Marshal(t)
 }
 

@@ -5,6 +5,36 @@ import (
 	"testing"
 )
 
+func TestTemplateMessageCheckValid(t *testing.T) {
+	t.Run("TemplateMessageCheckValid", func(t *testing.T) {
+		temp := NewTemplateMessage("")
+		if temp.CheckValid() != TemplateIdInValid {
+			t.Error("TemplateIdInValid")
+		}
+
+		temp.SetTemplateId("templateId")
+		if temp.CheckValid() == TemplateIdInValid {
+			t.Error("TemplateIdInValid")
+		}
+
+		temp.SetUser("openId")
+		if temp.CheckValid() == ToUserInValid {
+			t.Error("ToUserInValid")
+		}
+
+		if err := temp.CheckValid(); err != DataInValid {
+			t.Error(err)
+		}
+
+		temp.AddDataItem("keyword1", temp.NewDataItem("keyword1", "#ccff00"))
+		if err := temp.CheckValid(); err != nil {
+			t.Error(err)
+		}
+
+	})
+
+}
+
 func BenchmarkNewTemplateMessage(b *testing.B) {
 	for i := 1; i < b.N; i++ {
 		t := NewTemplateMessage("templateId")
